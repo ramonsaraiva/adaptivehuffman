@@ -2,6 +2,9 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <bitset>
 
 using namespace std;
 
@@ -19,7 +22,7 @@ class AdaptiveHuffman
 		AdaptiveHuffman();
 
 		void insert(char sym);
-		string encode();
+		void encode();
 		void decode();
 		bool is_known(char sym);
 		Node* find_node(char sym);
@@ -30,11 +33,11 @@ class AdaptiveHuffman
 		string to_binary(char sym);
 		string get_by_asc(int index);
 
-		void load_buffer(string data);
-		void load_buffer_from_file(string path);
+		void load_rawtext(string path);
+		void load_encoded_file(string path);
 
-		//debug
-		Node* get_nyt();
-		vector<Node*> get_nodes();
-		void print_nodes();
+		void write_rawtext(string path);
+		void write_encoded_file(string path);
+
+		string get_buffer();
 };

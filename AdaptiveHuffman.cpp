@@ -53,25 +53,19 @@ void AdaptiveHuffman::insert(char sym)
 	}
 }
 
-string AdaptiveHuffman::encode()
+void AdaptiveHuffman::encode()
 {
-	vector<string> result;
-	string result2 = "";
-	result.push_back("0");
-
-	cin >> buffer;
+	string result;
+	result.append("0");
 
 	for (char c : buffer)
 	{
-		result.push_back(get_code(c));
+		result.append(get_code(c));
 		insert(c);
 	}
 
-	for (string s : result)
-		for (char c : s)
-			result2 += c;
-
-	return result2;
+	buffer.clear();
+	buffer = result;
 }
 
 void AdaptiveHuffman::decode()
@@ -111,7 +105,8 @@ void AdaptiveHuffman::decode()
 		}
 	}
 
-	cout << result;
+	buffer.clear();
+	buffer = result;
 }
 
 bool AdaptiveHuffman::is_known(char sym)
@@ -246,29 +241,106 @@ string AdaptiveHuffman::get_by_asc(int index)
 	return string(1, asc);
 }
 
-void AdaptiveHuffman::load_buffer(string data)
+void AdaptiveHuffman::load_rawtext(string path)
 {
-	buffer = data;
+	ifstream input;
+
+	input.open(path);
+
+	stringstream buff;
+	buff << input.rdbuf();
+
+	buffer.clear();
+
+	for (char byte : buff.str())
+		buffer.append(string(1, byte));
+
+	input.close();
 }
 
-//debug
-
-Node* AdaptiveHuffman::get_nyt()
+void AdaptiveHuffman::load_encoded_file(string path)
 {
-	return nyt;
-}
+	ifstream input;
+	string temp;
 
-vector<Node*> AdaptiveHuffman::get_nodes()
-{
-	return nodes;
-}
+	input.open(path, ios::binary);
 
-void AdaptiveHuffman::print_nodes()
-{
-	cout << endl << endl;
+	stringstream buff;
+	buff << input.rdbuf();
 
-	for (Node* y : nodes)
+	buffer.clear();
+
+	int rest = (int) buff.str().at(0);
+
+	for (int i = 1; i < buff.str().size(); i++)
 	{
-		cout << "mem pos: " << y << "\tsize: " << sizeof(*y) << "\tsymbol: " << y->get_symbol() << "\tfrequency: " << y->get_frequency() << "\tleft: " << y->get_left() << "\tright: " << y->get_right() << "\tparent:" << y->get_parent() << endl;
+		temp.clear();
+		temp = bitset<8>(buff.str().at(i)).to_string();
+
+		if (rest > 0 && i == buff.str().size()-1)
+			buffer.append(temp.substr(0, temp.size() - (8 - rest)));
+		else
+			buffer.append(temp);
 	}
+
+	input.close();
+}
+
+void AdaptiveHuffman::write_rawtext(string path)
+{
+	ofstream output;
+
+	output.open(path, ofstream::out);
+
+	for (char byte : buffer)
+		output << byte;
+
+	output.close();
+}
+
+
+void AdaptiveHuffman::write_encoded_file(string path)
+{
+	ofstream output;
+	vector<bitset<8>> bytes;
+	bitset<8> b;
+
+	int nofbytes = ceil(buffer.size() / 8);
+	int rest = buffer.size() % 8;
+
+	for (int i = 0; i < nofbytes; i++)
+	{
+		b.reset();
+		bytes.push_back(b);
+
+		for (int j = 0; j < 8; j++)
+			bytes.back().set(7 - j, (buffer.at(i * 8 + j) == '1') ? 1 : 0);
+	}
+
+	if (rest > 0)
+	{
+		b.reset();
+		bytes.push_back(b);
+
+		for (int i = 0; i < rest; i++)
+		{
+			bytes.back().set(7 - i, (buffer.at(nofbytes * 8 + i) == '1') ? 1 : 0);
+		}
+	}
+
+	output.open(path, ofstream::out | ofstream::binary);
+
+	output << (char) rest;
+
+	for (bitset<8> byte : bytes)
+	{
+		output << (char) byte.to_ulong();
+	}
+
+	output.close();
+}
+
+string AdaptiveHuffman::get_buffer()
+{
+	return buffer;
 }

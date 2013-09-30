@@ -4,18 +4,31 @@ int main()
 {
 	AdaptiveHuffman* tree = new AdaptiveHuffman();
 
-	string encoded = tree->encode();
+	tree->load_rawtext("input.txt");
 
-	tree->print_nodes();
+	cout << endl << endl;
+	cout << "Raw text from input file: " << endl << tree->get_buffer();
 
-	cout << endl << endl << encoded << endl << endl;
+	tree->encode();
 
-	cout << endl << encoded.size() << endl << encoded.size() / 8 << endl;
+	cout << endl << endl;
+	cout << "Encoded bit string: " << endl << tree->get_buffer();
 
-	AdaptiveHuffman* other_tree = new AdaptiveHuffman();
-	other_tree->load_buffer(encoded);
-	other_tree->decode();
-	other_tree->print_nodes();
+	tree->write_encoded_file("encoded.huff");
 
+	AdaptiveHuffman* another = new AdaptiveHuffman();
+
+	another->load_encoded_file("encoded.huff");
+
+	cout << endl << endl;
+	cout << "Decoded bit string from encoded file: " << endl << another->get_buffer();
+
+	another->decode();
+
+	cout << endl << endl;
+	cout << "Decoded text from encoded file: " << endl << another->get_buffer();
+	cout << endl << endl;
+
+	another->write_rawtext("output.txt");
 	return 0;
 }
