@@ -1,1 +1,1 @@
-Simple C++ implementation for Huffman compression algorithm.
+Simple C++ implementation for Adaptive Huffman compression algorithm.
